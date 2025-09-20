@@ -1,3 +1,5 @@
+## This is a fork of [Blitz](https://github.com/DioxusLabs/blitz)
+
 <p>
 <picture >
   <source media="(prefers-color-scheme: dark)" srcset="https://blitz-website.fly.dev/static/blitz-logo-with-text3-white.svg">
