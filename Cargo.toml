@@ -9,6 +9,7 @@ members = [
   "packages/blitz-dom",
   "packages/blitz-html",
   "packages/blitz-net",
+  "packages/blitz-nova",
   "packages/blitz-paint",
   "packages/blitz-shell",
   "packages/blitz",
@@ -47,6 +48,7 @@ blitz = { version = "0.1.0", path = "./packages/blitz" }
 blitz-dom = { version = "0.1.0", path = "./packages/blitz-dom", default-features = false }
 blitz-html = { version = "0.1.0", path = "./packages/blitz-html", default-features = false }
 blitz-net = { version = "0.1.0", path = "./packages/blitz-net", default-features = false }
+blitz-nova = { version = "0.1.0", path = "./packages/blitz-nova", default-features = false }
 blitz-paint = { version = "0.1.0", path = "./packages/blitz-paint", default-features = false }
 blitz-shell = { version = "0.1.0", path = "./packages/blitz-shell", default-features = false }
 blitz-traits = { version = "0.1.0", path = "./packages/blitz-traits", default-features = false }
@@ -66,6 +68,9 @@ cssparser = { version = "0.35" }
 markup5ever = "0.35" # needs to match stylo web_atoms version
 html5ever = "0.35" # needs to match stylo web_atoms version
 xml5ever = "0.35" # needs to match stylo web_atoms version
+
+# Javascript dependencies
+nova_vm = "0.3.0"
 
 # Other Servo dependencies
 euclid = "0.22"
