@@ -22,6 +22,7 @@ anyrender_vello = { workspace = true }
 blitz-traits = { workspace = true }
 blitz-dom = { workspace = true }
 blitz-html = { workspace = true }
+blitz-nova = { workspace = true }
 blitz-shell = { workspace = true }
 blitz-paint = { workspace = true }
 blitz-net = { workspace = true, optional = true }

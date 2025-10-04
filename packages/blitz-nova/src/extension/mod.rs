@@ -11,18 +11,26 @@ use nova_vm::{
 mod console;
 mod document;
 mod node;
+mod time;
+pub mod timeout;
 
+use console::ConsoleExt;
 use document::DocumentExt;
+use node::NodeExt;
+use time::TimeExt;
 
-use crate::extension::{console::ConsoleExt, node::NodeExt};
+use crate::host_data::{HostData, OpsStorage};
+
+pub type ExtensionStorageInit = Box<dyn FnOnce(&mut OpsStorage)>;
 
 pub struct Extension {
     pub name: &'static str,
     pub ops: Vec<ExtensionOp>,
+    pub storage: Option<ExtensionStorageInit>,
 }
 
 impl Extension {
-    pub(crate) fn load(
+    pub(crate) fn load<ScriptMacroTask: 'static>(
         &mut self,
         agent: &mut Agent,
         global_object: Object,
@@ -64,6 +72,13 @@ impl Extension {
                     .unwrap();
             }
         }
+        
+        if let Some(storage_hook) = self.storage.take() {
+            let host_data = agent.get_host_data();
+            let host_data: &HostData<ScriptMacroTask> = host_data.downcast_ref().unwrap();
+            let mut storage = host_data.storage.borrow_mut();
+            (storage_hook)(&mut storage)
+        }
     }
 }
 
@@ -90,5 +105,6 @@ pub fn recommended_extensions() -> Vec<Extension> {
         ConsoleExt::new_extension(),
         DocumentExt::new_extension(),
         NodeExt::new_extension(),
+        TimeExt::new_extension(),
     ]
 }

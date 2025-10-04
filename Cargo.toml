@@ -144,6 +144,8 @@ fastrand = "2.3.0"
 rayon = "1"
 thread_local = "1"
 
+anymap = "0.12.1"
+
 [profile.profile]
 inherits = "release"
 debug = true

@@ -27,6 +27,7 @@ impl ConsoleExt {
             ops: vec![
                 ExtensionOp::new("internal_print", Self::internal_print, 1, false),
             ],
+            storage: None,
         }
     }
     

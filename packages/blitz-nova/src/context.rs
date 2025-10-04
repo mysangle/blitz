@@ -1,12 +1,10 @@
 
-use std::{
-    borrow::BorrowMut,
-};
+use std::borrow::BorrowMut;
 
 use nova_vm::{
     ecmascript::{
         execution::{
-            agent::{Agent, GcAgent, Options, RealmRoot},
+            agent::{Agent, GcAgent, HostHooks, Options, RealmRoot},
         },
         scripts_and_modules::{
             script::{parse_script, script_evaluation},
@@ -21,8 +19,7 @@ use nova_vm::{
     },
 };
 
-use crate::{extension::recommended_extensions, host_hooks::HostHandler};
-use crate::host_hooks::BlitzHostHooks;
+use crate::extension::recommended_extensions;
 use crate::runtime::RUNTIME_JS;
 
 #[derive(Debug)]
@@ -31,14 +28,12 @@ pub enum JSContextError {
 }
 
 pub struct JSContext {
-    agent: GcAgent,
-    realm_root: RealmRoot,
+    pub agent: GcAgent,
+    pub realm_root: RealmRoot,
 }
 
 impl JSContext {
-    pub fn new(handler: Box<dyn HostHandler>) -> Self {
-        let host_hooks = BlitzHostHooks::new(handler);
-        let host_hooks = &*Box::leak(Box::new(host_hooks));
+    pub fn new<ScriptMacroTask: 'static>(host_hooks: &'static dyn HostHooks) -> Self {
         let mut agent = GcAgent::new(Options::default(), host_hooks);
         
         let create_global_object: Option<
@@ -72,7 +67,7 @@ impl JSContext {
                         .unwrap();
 
                     for extension in &mut recommended_extensions() {
-                        extension.load(
+                        extension.load::<ScriptMacroTask>(
                             agent,
                             global_object,
                             blitz_obj.get(agent).into_object(),

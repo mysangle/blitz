@@ -1,9 +1,7 @@
 
-
 use nova_vm::{
-    SmallInteger,
     ecmascript::{
-        builtins::{ArgumentsList, Array},
+        builtins::ArgumentsList,
         execution::{
             agent::{Agent, ExceptionType, JsResult},
         },
@@ -29,6 +27,7 @@ impl NodeExt {
                 ExtensionOp::new("internal_get_attribute", Self::internal_get_attribute, 2, false),
                 ExtensionOp::new("internal_inner_html_set", Self::internal_inner_html_set, 2, false),
             ],
+            storage: None,
         }
     }
     

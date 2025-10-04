@@ -3,9 +3,9 @@ pub fn event_dispatch_js(node_id: usize, event_type: &str) -> String {
     format!("new Node({}).dispatchEvent(new Event('{}'))", node_id, event_type)
 }
 
-pub fn set_timeout_js(handle: usize) -> String {
-    format!("__runSetTimeout({})", handle)
-}
+// pub fn set_timeout_js(handle: usize) -> String {
+//     format!("__runSetTimeout({})", handle)
+// }
 
 pub const RUNTIME_JS: &str = r#"
 blitzConsole = { log: function(message) { __blitz__.internal_print(message + "\n"); } }
@@ -56,19 +56,26 @@ Event.prototype.preventDefault = function() {
     this.do_default = false;
 }
 
-SET_TIMEOUT_REQUESTS = {}
+// SET_TIMEOUT_REQUESTS = {}
 
-function setTimeout(callback, time_delta) {
-    var handle = Object.keys(SET_TIMEOUT_REQUESTS).length;
-    SET_TIMEOUT_REQUESTS[handle] = callback;
-    __blitz__.internal_set_timeout(handle, time_delta);
-}
+// function setTimeout(callback, time_delta) {
+//     var handle = Object.keys(SET_TIMEOUT_REQUESTS).length;
+//     SET_TIMEOUT_REQUESTS[handle] = callback;
+//     set_timeout(handle, time_delta);
+// }
 
-function __runSetTimeout(handle) {
-    var callback = SET_TIMEOUT_REQUESTS[handle]
-    callback();
-}
+// function __runSetTimeout(handle) {
+//     var callback = SET_TIMEOUT_REQUESTS[handle]
+//     callback();
+// }
 
 globalThis.console = blitzConsole;
 globalThis.document = blitzDocument;
+"#;
+
+pub const TEST_JS: &str = r#"
+console.log("Hello, World!");
+setTimeout(() => {
+  console.log("Delayed for 1 second.");
+}, 1000);
 "#;

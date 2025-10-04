@@ -1,0 +1,108 @@
+
+use std::{
+    collections::HashMap,
+    sync::{
+        Arc,
+        atomic::{AtomicU32, Ordering},
+    },
+    time::Duration,
+};
+
+use nova_vm::{
+    ecmascript::{
+        execution::agent::{GcAgent, RealmRoot},
+        types::{Function, Value},
+    },
+    engine::Global,
+};
+
+use crate::{
+    event_loop::BlitzMacroTask,
+    host_data::HostData,
+    task::TaskId,
+};
+
+#[derive(Default)]
+pub struct TimeoutsStorage {
+    timeouts: HashMap<TimeoutId, Timeout>,
+    count: Arc<AtomicU32>,
+}
+
+#[derive(Debug, PartialEq, Hash, Eq, Clone, Copy)]
+pub struct TimeoutId(u32);
+
+impl TimeoutId {
+    pub fn index(&self) -> u32 {
+        self.0
+    }
+}
+
+impl TimeoutId {
+    pub fn clear(self, host_data: &HostData<BlitzMacroTask>) {
+        let mut host_data_storage = host_data.storage.borrow_mut();
+        let timeouts_storage: &mut TimeoutsStorage = host_data_storage.get_mut().unwrap();
+        let timeout = timeouts_storage.timeouts.remove(&self).unwrap();
+        host_data.clear_macro_task(timeout.task_id);
+    }
+    
+    pub fn run_and_clear(
+        self,
+        agent: &mut GcAgent,
+        host_data: &HostData<BlitzMacroTask>,
+        realm_root: &RealmRoot,
+    ) {
+        Timeout::with(host_data, &self, |timeout| {
+            let global_callback = &timeout.callback;
+            agent.run_in_realm(realm_root, |agent, gc| {
+                let callback = global_callback.get(agent, gc.nogc());
+                let callback_function: Function = callback.try_into().unwrap();
+                callback_function
+                    .call(agent, Value::Undefined, &mut [], gc)
+                    .unwrap();
+            });
+        });
+        self.clear(host_data);
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Timeout {
+    pub(crate) period: Duration,
+    pub(crate) callback: Global<Value<'static>>,
+    pub(crate) task_id: TaskId,
+}
+
+impl Timeout {
+    pub fn create(
+        host_data: &HostData<BlitzMacroTask>,
+        period: Duration,
+        callback: Global<Value>,
+        task_id: impl FnOnce(TimeoutId) -> TaskId,
+    ) -> TimeoutId {
+        let mut host_data_storage = host_data.storage.borrow_mut();
+        let timeouts_storage: &mut TimeoutsStorage = host_data_storage.get_mut().unwrap();
+        let id = timeouts_storage.count.fetch_add(1, Ordering::Relaxed);
+        let timeout_id = TimeoutId(id);
+        let task_id = task_id(timeout_id);
+        let timeout = Self {
+            period,
+            callback,
+            task_id,
+        };
+
+        timeouts_storage.timeouts.insert(timeout_id, timeout);
+
+        timeout_id
+    }
+    
+    pub fn with(
+        host_data: &HostData<BlitzMacroTask>,
+        timeout_id: &TimeoutId,
+        run: impl FnOnce(&Self),
+    ) {
+        let host_data_storage = host_data.storage.borrow();
+        let timeouts_storage: &TimeoutsStorage = host_data_storage.get().unwrap();
+        let timeout = timeouts_storage.timeouts.get(timeout_id).unwrap();
+        run(timeout);
+    }
+}

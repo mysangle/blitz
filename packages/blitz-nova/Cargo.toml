@@ -9,4 +9,6 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+anymap = { workspace = true }
 nova_vm = { workspace = true }
+tokio = { workspace = true }
