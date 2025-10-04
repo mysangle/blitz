@@ -4,7 +4,6 @@ use blitz_traits::events::{BlitzMouseButtonEvent, DomEventData, HitResult};
 use keyboard_types::Modifiers;
 use markup5ever::{LocalName, local_name};
 use parley::Cluster;
-use peniko::kurbo;
 use selectors::matching::ElementSelectorFlags;
 use slab::Slab;
 use std::cell::{Cell, RefCell};
@@ -112,7 +111,7 @@ pub struct Node {
     pub cache: Cache,
     pub unrounded_layout: Layout,
     pub final_layout: Layout,
-    pub scroll_offset: kurbo::Point,
+    pub scroll_offset: crate::Point<f64>,
 }
 
 unsafe impl Send for Node {}
@@ -153,7 +152,7 @@ impl Node {
             cache: Cache::new(),
             unrounded_layout: Layout::new(),
             final_layout: Layout::new(),
-            scroll_offset: kurbo::Point::ZERO,
+            scroll_offset: crate::Point::ZERO,
         }
     }
 
