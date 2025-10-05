@@ -1,10 +1,14 @@
 
 pub const TEST_JS: &str = r#"
 console.log("Hello, World!");
-var timeoutId = setTimeout(() => {
+setTimeout(() => {
   console.log("Delayed for 1 second.");
 }, 1000);
-//clearTimeout(timeoutId);
+
+var timeoutId = setTimeout(() => {
+  console.log("Cancelled setTimeout.");
+}, 1000);
+clearTimeout(timeoutId);
 "#;
 
 fn main() {

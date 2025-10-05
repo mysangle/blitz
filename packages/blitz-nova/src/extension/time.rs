@@ -16,12 +16,12 @@ use nova_vm::{
 };
 
 use crate::{
-    event_loop::{MacroTask, BlitzMacroTask},
     extension::{
         Extension, ExtensionOp,
         timeout::{Timeout, TimeoutId, TimeoutsStorage},
     },
     host_data::{HostData, OpsStorage},
+    runtime::{MacroTask, BlitzMacroTask},
 };
 
 #[derive(Default)]
@@ -54,17 +54,13 @@ impl TimeExt {
         
         let root_callback = Global::new(agent, callback.unbind());
         let host_data = agent.get_host_data();
-        let host_data: &HostData<BlitzMacroTask> = host_data.downcast_ref().unwrap();
-        let macro_task_tx = host_data.macro_task_tx();
+        let host_data: &HostData = host_data.downcast_ref().unwrap();
+        let task_provider = host_data.task_sender();
         
         let timeout_id = Timeout::create(host_data, duration, root_callback, |timeout_id| {
             host_data.spawn_macro_task(async move {
                 tokio::time::sleep(duration).await;
-                macro_task_tx
-                    .send(MacroTask::Script(BlitzMacroTask::RunAndClearTimeout(
-                        timeout_id,
-                    )))
-                    .unwrap();
+                task_provider.send(MacroTask::Script(BlitzMacroTask::RunAndClearTimeout(timeout_id))).unwrap();
             })
         });
         let timeout_id_value =
@@ -84,10 +80,10 @@ impl TimeExt {
         let timeout_id = TimeoutId::from_index(timeout_id_u32);
 
         let host_data = agent.get_host_data();
-        let host_data: &HostData<BlitzMacroTask> = host_data.downcast_ref().unwrap();
+        let host_data: &HostData = host_data.downcast_ref().unwrap();
 
-        host_data
-            .macro_task_tx
+        let task_provider = host_data.task_sender();
+        task_provider
             .send(MacroTask::Script(BlitzMacroTask::ClearTimeout(timeout_id)))
             .unwrap();
 

@@ -6,7 +6,7 @@ use std::{
     sync::{
         Arc,
         atomic::{AtomicU32, Ordering},
-        mpsc::Sender,
+        mpsc::SendError,
     },
 };
 
@@ -14,37 +14,41 @@ use anymap::AnyMap;
 use tokio::task::JoinHandle;
 
 use crate::{
-    event_loop::MacroTask,
     host_hooks::HostHandler,
+    runtime::MacroTask,
     task::TaskId,
 };
 
 pub type OpsStorage = AnyMap;
 pub type LocalOpsStorage = RefCell<OpsStorage>;
 
-pub struct HostData<ScriptMacroTask> {
+pub trait TaskSender: Send + Sync {
+    fn send(&self, task: MacroTask) -> Result<(), SendError<MacroTask>>;
+}
+
+pub struct HostData {
     pub handler: Box<dyn HostHandler>,
     pub storage: LocalOpsStorage,
-    pub macro_task_tx: Sender<MacroTask<ScriptMacroTask>>,
+    pub task_sender: Arc<dyn TaskSender>,
     pub macro_task_count: Arc<AtomicU32>,
     pub tasks: RefCell<HashMap<TaskId, JoinHandle<()>>>,
     pub task_count: Arc<AtomicU32>,
 }
 
-impl<ScriptMacroTask> HostData<ScriptMacroTask> {
-    pub fn new(handler: Box<dyn HostHandler>, macro_task_tx: Sender<MacroTask<ScriptMacroTask>>) -> Self {
+impl HostData {
+    pub fn new(handler: Box<dyn HostHandler>, task_sender: Arc<dyn TaskSender>) -> Self {
         Self {
             handler,
             storage: RefCell::new(AnyMap::new()),
-            macro_task_tx,
+            task_sender,
             macro_task_count: Arc::new(AtomicU32::new(0)),
             tasks: RefCell::default(),
             task_count: Arc::default(),
         }
     }
     
-    pub fn macro_task_tx(&self) -> Sender<MacroTask<ScriptMacroTask>> {
-        self.macro_task_tx.clone()
+    pub fn task_sender(&self) -> Arc<dyn TaskSender> {
+        self.task_sender.clone()
     }
     
     pub fn spawn_macro_task<F>(&self, future: F) -> TaskId

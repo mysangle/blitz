@@ -3,9 +3,7 @@ use nova_vm::{
     ecmascript::{
         builtins::{Behaviour, BuiltinFunctionArgs, RegularFn, create_builtin_function},
         execution::Agent,
-        scripts_and_modules::{
-            module::module_semantics::source_text_module_records::parse_module, script::HostDefined,
-        },
+        scripts_and_modules::script::{HostDefined, parse_script, script_evaluation},
         types::{InternalMethods, IntoValue, Object, PropertyDescriptor, PropertyKey},
     },
     engine::context::{Bindable, GcScope},
@@ -50,30 +48,22 @@ impl Extension {
             let source_text =
                 nova_vm::ecmascript::types::String::from_str(agent, file_source, gc.nogc());
 
-            let module = match parse_module(
+            let script = match parse_script(
                 agent,
                 source_text,
                 agent.current_realm(gc.nogc()),
+                false,
                 Some(std::rc::Rc::new(specifier.clone()) as HostDefined),
                 gc.nogc(),
             ) {
-                Ok(module) => module,
-                Err(diagnostics) => exit_with_parse_errors(diagnostics, &specifier, file_source),
+                Ok(script) => script,
+                Err(errors) => {
+                    // Borrow the string data from the Agent
+                    let source_text = source_text.to_string_lossy(agent);
+                    exit_with_parse_errors(errors, &specifier, &source_text)
+                }
             };
-
-            let eval_result = agent
-                .run_parsed_module(module.unbind(), None, gc.reborrow())
-                .unbind();
-            if let Err(e) = eval_result {
-                let error_value = e.value();
-                let message = error_value
-                    .string_repr(agent, gc.reborrow())
-                    .as_str(agent)
-                    .unwrap_or("<non-string error>")
-                    .to_string();
-                let err = NovaError::runtime_error(message);
-                print_enhanced_error(&err);
-            }
+            let _ = script_evaluation(agent, script.unbind(), gc.reborrow());
         }
         for op in &self.ops {
             let function = create_builtin_function(
@@ -113,7 +103,7 @@ impl Extension {
         
         if let Some(storage_hook) = self.storage.take() {
             let host_data = agent.get_host_data();
-            let host_data: &HostData<ScriptMacroTask> = host_data.downcast_ref().unwrap();
+            let host_data: &HostData = host_data.downcast_ref().unwrap();
             let mut storage = host_data.storage.borrow_mut();
             (storage_hook)(&mut storage)
         }

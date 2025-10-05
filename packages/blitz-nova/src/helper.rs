@@ -3,6 +3,10 @@ use oxc_diagnostics::OxcDiagnostic;
 
 use crate::error::{ErrorReporter, NovaError};
 
+pub fn event_dispatch_js(node_id: usize, event_type: &str) -> String {
+    format!("new Node({}).dispatchEvent(new Event('{}'))", node_id, event_type)
+}
+
 pub fn exit_with_parse_errors(errors: Vec<OxcDiagnostic>, source_path: &str, source: &str) -> ! {
     assert!(!errors.is_empty());
 

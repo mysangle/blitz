@@ -22,19 +22,19 @@ use nova_vm::{
 
 use crate::host_data::HostData;
 
-pub struct BlitzHostHooks<ScriptMacroTask> {
-    pub host_data: HostData<ScriptMacroTask>,
+pub struct BlitzHostHooks {
+    pub host_data: HostData,
 }
 
-impl<ScriptMacroTask> BlitzHostHooks<ScriptMacroTask> {
-    pub fn new(host_data: HostData<ScriptMacroTask>) -> Self {
+impl BlitzHostHooks {
+    pub fn new(host_data: HostData) -> Self {
         Self {
             host_data,
         }
     }
 }
 
-impl<ScriptMacroTask> std::fmt::Debug for BlitzHostHooks<ScriptMacroTask> {
+impl std::fmt::Debug for BlitzHostHooks {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BlitzHostHooks")
             .field("handler", &std::any::type_name::<dyn HostHandler>())
@@ -42,7 +42,7 @@ impl<ScriptMacroTask> std::fmt::Debug for BlitzHostHooks<ScriptMacroTask> {
     }
 }
 
-impl<ScriptMacroTask: 'static> HostHooks for BlitzHostHooks<ScriptMacroTask> {
+impl HostHooks for BlitzHostHooks {
     fn enqueue_promise_job(&self, _job: Job) { unimplemented!(); }
     fn load_imported_module<'gc>( &self, _agent: &mut Agent, _referrer: Referrer<'gc>, _module_request: ModuleRequest<'gc>, _host_defined: Option<HostDefined>, _payload: &mut GraphLoadingStateRecord<'gc>, _gc: NoGcScope<'gc, '_>) { unimplemented!(); }
     

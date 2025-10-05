@@ -17,7 +17,6 @@ use nova_vm::{
 };
 
 use crate::{
-    event_loop::BlitzMacroTask,
     host_data::HostData,
     task::TaskId,
 };
@@ -40,14 +39,14 @@ impl TimeoutId {
         Self(index)
     }
     
-    pub fn clear(self, host_data: &HostData<BlitzMacroTask>) {
+    pub fn clear(self, host_data: &HostData) {
         let mut host_data_storage = host_data.storage.borrow_mut();
         let timeouts_storage: &mut TimeoutsStorage = host_data_storage.get_mut().unwrap();
         let timeout = timeouts_storage.timeouts.remove(&self).unwrap();
         host_data.clear_macro_task(timeout.task_id);
     }
     
-    pub fn clear_and_abort(self, host_data: &HostData<BlitzMacroTask>) {
+    pub fn clear_and_abort(self, host_data: &HostData) {
         let mut host_data_storage = host_data.storage.borrow_mut();
         let timeouts_storage: &mut TimeoutsStorage = host_data_storage.get_mut().unwrap();
         let timeout = timeouts_storage.timeouts.remove(&self).unwrap();
@@ -58,7 +57,7 @@ impl TimeoutId {
     pub fn run_and_clear(
         self,
         agent: &mut GcAgent,
-        host_data: &HostData<BlitzMacroTask>,
+        host_data: &HostData,
         realm_root: &RealmRoot,
     ) {
         Timeout::with(host_data, &self, |timeout| {
@@ -84,7 +83,7 @@ pub struct Timeout {
 
 impl Timeout {
     pub fn create(
-        host_data: &HostData<BlitzMacroTask>,
+        host_data: &HostData,
         period: Duration,
         callback: Global<Value>,
         task_id: impl FnOnce(TimeoutId) -> TaskId,
@@ -106,7 +105,7 @@ impl Timeout {
     }
     
     pub fn with(
-        host_data: &HostData<BlitzMacroTask>,
+        host_data: &HostData,
         timeout_id: &TimeoutId,
         run: impl FnOnce(&Self),
     ) {

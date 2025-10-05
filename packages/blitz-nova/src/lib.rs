@@ -1,6 +1,10 @@
 
+use std::sync::{
+    Arc,
+    mpsc::{Sender, SendError},
+};
+
 mod error;
-mod event_loop;
 mod extension;
 mod helper;
 mod host_data;
@@ -10,25 +14,47 @@ mod runtime;
 mod task;
 
 pub use context::{JSContext, JSContextError};
-pub use event_loop::{BlitzHostHandler, BlitzMacroTask, JSEventLoop};
-pub use host_data::HostData;
+pub use runtime::{BlitzMacroTask, MacroTask, Runtime};
+pub use host_data::{HostData, TaskSender};
 pub use host_hooks::HostHandler;
-pub use runtime::event_dispatch_js;
 
-use crate::event_loop::recommended_eventloop_handler;
+struct BlitzHostHandler {
+    
+}
+
+impl HostHandler for BlitzHostHandler {
+    fn query_selector_all(&self, selector: &str) -> Vec<usize> {
+        vec![]
+    }
+    
+    fn get_attribute(&self, node_id: usize, name: &str) -> Option<String> {
+        None
+    }
+    
+    fn inner_html_set(&self, node_id: usize, html: &str) {
+        
+    }
+}
+
+struct BlitzTaskSender {
+    pub macro_task_tx: Sender<MacroTask>,
+}
+
+impl TaskSender for BlitzTaskSender {
+    fn send(&self, task: MacroTask) -> Result<(), SendError<MacroTask>> {
+        self.macro_task_tx.send(task)
+    }
+}
 
 pub fn run(script: &str) {
     let handler: Box<dyn HostHandler> = Box::new(BlitzHostHandler {
-        
+        // document
     });
     let (macro_task_tx, macro_task_rx) = std::sync::mpsc::channel();
-    let host_data: HostData<BlitzMacroTask> = HostData::new(handler, macro_task_tx);
+    let task_sender = Arc::new(BlitzTaskSender { macro_task_tx });
+    let host_data = HostData::new(handler, task_sender);
     
-    let event_loop = JSEventLoop::new(
-        host_data,
-        macro_task_rx,
-        recommended_eventloop_handler,
-    );
+    let runtime = Runtime::new(host_data, macro_task_rx);
     
-    event_loop.run(script);
+    runtime.run(script);
 }
