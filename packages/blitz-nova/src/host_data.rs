@@ -66,6 +66,15 @@ impl<ScriptMacroTask> HostData<ScriptMacroTask> {
         task_id
     }
     
+    pub fn abort_macro_task(&self, task_id: TaskId) {
+        let tasks = self.tasks.borrow();
+        let task = tasks.get(&task_id).unwrap();
+        task.abort();
+
+        // Manually decrease the macro tasks counter as the task was aborted.
+        self.macro_task_count.fetch_sub(1, Ordering::Relaxed);
+    }
+    
     pub fn clear_macro_task(&self, task_id: TaskId) {
         self.tasks.borrow_mut().remove(&task_id).unwrap();
     }

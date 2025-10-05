@@ -75,6 +75,9 @@ pub fn recommended_eventloop_handler(
         BlitzMacroTask::RunAndClearTimeout(timeout_id) => {
             timeout_id.run_and_clear(agent, host_data, realm_root)
         }
+        BlitzMacroTask::ClearTimeout(timeout_id) => {
+            timeout_id.clear_and_abort(host_data);
+        }
     }
 }
 
@@ -85,6 +88,7 @@ pub enum MacroTask<ScriptMacroTask> {
 
 pub enum BlitzMacroTask {
     RunAndClearTimeout(TimeoutId),
+    ClearTimeout(TimeoutId),
 }
 
 pub struct BlitzHostHandler {

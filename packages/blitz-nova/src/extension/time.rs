@@ -19,7 +19,7 @@ use crate::{
     event_loop::{MacroTask, BlitzMacroTask},
     extension::{
         Extension, ExtensionOp,
-        timeout::{Timeout, TimeoutsStorage},
+        timeout::{Timeout, TimeoutId, TimeoutsStorage},
     },
     host_data::{HostData, OpsStorage},
 };
@@ -33,6 +33,7 @@ impl TimeExt {
             name: "time",
             ops: vec![
                 ExtensionOp::new("setTimeout", Self::set_timeout, 2, true),
+                ExtensionOp::new("clearTimeout", Self::clear_timeout, 1, true),
             ],
             storage: Some(Box::new(|storage: &mut OpsStorage| {
                 storage.insert(TimeoutsStorage::default());
@@ -70,5 +71,26 @@ impl TimeExt {
             Value::from_f64(agent, timeout_id.index() as f64, gc.nogc()).unbind();
 
         Ok(timeout_id_value)
+    }
+    
+    pub fn clear_timeout<'gc>(
+        agent: &mut Agent,
+        _this: Value,
+        args: ArgumentsList,
+        mut gc: GcScope<'gc, '_>,
+    ) -> JsResult<'gc, Value<'gc>> {
+        let timeout_id_value = args[0];
+        let timeout_id_u32 = timeout_id_value.to_uint32(agent, gc.reborrow()).unwrap();
+        let timeout_id = TimeoutId::from_index(timeout_id_u32);
+
+        let host_data = agent.get_host_data();
+        let host_data: &HostData<BlitzMacroTask> = host_data.downcast_ref().unwrap();
+
+        host_data
+            .macro_task_tx
+            .send(MacroTask::Script(BlitzMacroTask::ClearTimeout(timeout_id)))
+            .unwrap();
+
+        Ok(Value::Undefined)
     }
 }
