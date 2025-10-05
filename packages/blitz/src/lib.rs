@@ -144,6 +144,6 @@ fn create_net_provider(
     net_provider
 }
 
-pub fn run_event_loop() {
-    blitz_nova::run_event_loop();
+pub fn run(script: &str) {
+    blitz_nova::run(script);
 }

@@ -2,6 +2,7 @@
 mod error;
 mod event_loop;
 mod extension;
+mod helper;
 mod host_data;
 mod host_hooks;
 mod context;
@@ -14,11 +15,9 @@ pub use host_data::HostData;
 pub use host_hooks::HostHandler;
 pub use runtime::event_dispatch_js;
 
-use runtime::TEST_JS;
-
 use crate::event_loop::recommended_eventloop_handler;
 
-pub fn run_event_loop() {
+pub fn run(script: &str) {
     let handler: Box<dyn HostHandler> = Box::new(BlitzHostHandler {
         
     });
@@ -31,5 +30,5 @@ pub fn run_event_loop() {
         recommended_eventloop_handler,
     );
     
-    event_loop.run(TEST_JS);
+    event_loop.run(script);
 }

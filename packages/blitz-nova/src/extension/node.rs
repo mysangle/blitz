@@ -28,6 +28,7 @@ impl NodeExt {
                 ExtensionOp::new("internal_inner_html_set", Self::internal_inner_html_set, 2, false),
             ],
             storage: None,
+            files: vec![],
         }
     }
     

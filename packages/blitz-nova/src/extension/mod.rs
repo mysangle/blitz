@@ -3,6 +3,9 @@ use nova_vm::{
     ecmascript::{
         builtins::{Behaviour, BuiltinFunctionArgs, RegularFn, create_builtin_function},
         execution::Agent,
+        scripts_and_modules::{
+            module::module_semantics::source_text_module_records::parse_module, script::HostDefined,
+        },
         types::{InternalMethods, IntoValue, Object, PropertyDescriptor, PropertyKey},
     },
     engine::context::{Bindable, GcScope},
@@ -19,7 +22,11 @@ use document::DocumentExt;
 use node::NodeExt;
 use time::TimeExt;
 
-use crate::host_data::{HostData, OpsStorage};
+use crate::{
+    error::NovaError,
+    helper::{exit_with_parse_errors, print_enhanced_error},
+    host_data::{HostData, OpsStorage},
+};
 
 pub type ExtensionStorageInit = Box<dyn FnOnce(&mut OpsStorage)>;
 
@@ -27,6 +34,7 @@ pub struct Extension {
     pub name: &'static str,
     pub ops: Vec<ExtensionOp>,
     pub storage: Option<ExtensionStorageInit>,
+    pub files: Vec<&'static str>,
 }
 
 impl Extension {
@@ -37,6 +45,36 @@ impl Extension {
         blitz_object: Object,
         gc: &mut GcScope<'_, '_>,
     ) {
+        for (idx, file_source) in self.files.iter().enumerate() {
+            let specifier = format!("<ext:{}:{}>", self.name, idx);
+            let source_text =
+                nova_vm::ecmascript::types::String::from_str(agent, file_source, gc.nogc());
+
+            let module = match parse_module(
+                agent,
+                source_text,
+                agent.current_realm(gc.nogc()),
+                Some(std::rc::Rc::new(specifier.clone()) as HostDefined),
+                gc.nogc(),
+            ) {
+                Ok(module) => module,
+                Err(diagnostics) => exit_with_parse_errors(diagnostics, &specifier, file_source),
+            };
+
+            let eval_result = agent
+                .run_parsed_module(module.unbind(), None, gc.reborrow())
+                .unbind();
+            if let Err(e) = eval_result {
+                let error_value = e.value();
+                let message = error_value
+                    .string_repr(agent, gc.reborrow())
+                    .as_str(agent)
+                    .unwrap_or("<non-string error>")
+                    .to_string();
+                let err = NovaError::runtime_error(message);
+                print_enhanced_error(&err);
+            }
+        }
         for op in &self.ops {
             let function = create_builtin_function(
                 agent,

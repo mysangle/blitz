@@ -14,7 +14,7 @@ use nova_vm::{
     },
 };
 
-use crate::error::{BlitzError, ErrorReporter};
+use crate::error::{NovaError, ErrorReporter};
 use crate::extension::{Extension, ExtensionOp};
 
 #[derive(Default)]
@@ -23,11 +23,12 @@ pub struct ConsoleExt;
 impl ConsoleExt {
     pub fn new_extension() -> Extension {
         Extension {
-            name: "document",
+            name: "console",
             ops: vec![
                 ExtensionOp::new("internal_print", Self::internal_print, 1, false),
             ],
             storage: None,
+            files: vec![include_str!("./console.ts")],
         }
     }
     
@@ -45,11 +46,11 @@ impl ConsoleExt {
                 .expect("String is not valid UTF-8")
                 .as_bytes(),
         ) {
-            let error = BlitzError::runtime_error(format!("Failed to write to stdout: {e}"));
+            let error = NovaError::runtime_error(format!("Failed to write to stdout: {e}"));
             ErrorReporter::print_error(&error);
         }
         if let Err(e) = stdout().flush() {
-            let error = BlitzError::runtime_error(format!("Failed to flush stdout: {e}"));
+            let error = NovaError::runtime_error(format!("Failed to flush stdout: {e}"));
             ErrorReporter::print_error(&error);
         }
         Ok(Value::Undefined)

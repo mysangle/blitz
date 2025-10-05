@@ -3,12 +3,7 @@ pub fn event_dispatch_js(node_id: usize, event_type: &str) -> String {
     format!("new Node({}).dispatchEvent(new Event('{}'))", node_id, event_type)
 }
 
-// pub fn set_timeout_js(handle: usize) -> String {
-//     format!("__runSetTimeout({})", handle)
-// }
-
 pub const RUNTIME_JS: &str = r#"
-blitzConsole = { log: function(message) { __blitz__.internal_print(message + "\n"); } }
 
 blitzDocument = { querySelectorAll: function(s) {
     var handles = __blitz__.internal_query_selector_all(s);
@@ -56,20 +51,6 @@ Event.prototype.preventDefault = function() {
     this.do_default = false;
 }
 
-// SET_TIMEOUT_REQUESTS = {}
-
-// function setTimeout(callback, time_delta) {
-//     var handle = Object.keys(SET_TIMEOUT_REQUESTS).length;
-//     SET_TIMEOUT_REQUESTS[handle] = callback;
-//     set_timeout(handle, time_delta);
-// }
-
-// function __runSetTimeout(handle) {
-//     var callback = SET_TIMEOUT_REQUESTS[handle]
-//     callback();
-// }
-
-globalThis.console = blitzConsole;
 globalThis.document = blitzDocument;
 "#;
 

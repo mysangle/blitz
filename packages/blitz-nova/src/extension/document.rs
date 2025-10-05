@@ -28,6 +28,7 @@ impl DocumentExt {
                 ExtensionOp::new("internal_query_selector_all", Self::internal_query_selector_all, 1, false),
             ],
             storage: None,
+            files: vec![],
         }
     }
     

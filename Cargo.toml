@@ -71,6 +71,9 @@ xml5ever = "0.35" # needs to match stylo web_atoms version
 
 # Javascript dependencies
 nova_vm = "0.3.0"
+anymap = "0.12.1"
+oxc_diagnostics = "0.80.0"
+oxc-miette = { version = "2.5.1", features = ["fancy"] }
 
 # Other Servo dependencies
 euclid = "0.22"
@@ -143,8 +146,6 @@ bytemuck = "1"
 fastrand = "2.3.0"
 rayon = "1"
 thread_local = "1"
-
-anymap = "0.12.1"
 
 [profile.profile]
 inherits = "release"
