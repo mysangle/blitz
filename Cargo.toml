@@ -1,9 +1,5 @@
 [workspace]
 members = [
-  "packages/anyrender",
-  "packages/anyrender_vello",
-  "packages/anyrender_vello_cpu",
-  "packages/anyrender_svg",
   "packages/debug_timer",
   "packages/blitz-traits",
   "packages/blitz-dom",
@@ -20,7 +16,6 @@ members = [
   "examples/counter",
   "examples/todomvc",
   "examples/wgpu_texture",
-  "examples/anyrender",
 ]
 exclude = ["sites"]
 resolver = "2"
@@ -35,13 +30,6 @@ edition = "2024"
 rust-version = "1.86.0"
 
 [workspace.dependencies]
-# Anyrender dependencies(in-repo)
-anyrender = { version = "0.5.0", path = "./packages/anyrender" }
-anyrender_vello = { version = "0.5.1", path = "./packages/anyrender_vello" }
-anyrender_vello_cpu = { version = "0.6.0", path = "./packages/anyrender_vello_cpu" }
-anyrender_svg = { version = "0.5.0", path = "./packages/anyrender_svg" }
-debug_timer = { version = "0.1.0", path = "./packages/debug_timer" }
-
 # Blitz dependencies(in-repo)
 blitz = { version = "0.1.0", path = "./packages/blitz" }
 blitz-dom = { version = "0.1.0", path = "./packages/blitz-dom", default-features = false }
@@ -52,14 +40,15 @@ blitz-shell = { version = "0.1.0", path = "./packages/blitz-shell", default-feat
 blitz-traits = { version = "0.1.0", path = "./packages/blitz-traits", default-features = false }
 stylo_taffy = { version = "0.1.0", path = "./packages/stylo_taffy", default-features = false }
 mini-dxn = { path = "./packages/mini-dxn", default-features = false }
+debug_timer = { version = "0.1.0", path = "./packages/debug_timer" }
 
 # Servo dependencies
-style = { version = "0.6", package = "stylo" }
-style_traits = { version = "0.6", package = "stylo_traits" }
-style_atoms = { version = "0.6", package = "stylo_atoms" }
-style_config = { version = "0.6", package = "stylo_config" }
-style_dom = { version = "0.6", package = "stylo_dom" }
-selectors = { version = "0.31", package = "selectors" }
+style = { version = "0.8", package = "stylo" }
+style_traits = { version = "0.8", package = "stylo_traits" }
+style_atoms = { version = "0.8", package = "stylo_atoms" }
+style_config = { version = "0.8", package = "stylo_config" }
+style_dom = { version = "0.8", package = "stylo_dom" }
+selectors = { version = "0.32", package = "selectors" }
 cssparser = { version = "0.35" }
 
 # HTML5ever dependencies
@@ -82,13 +71,20 @@ dioxus-cli-config = { version = "=0.7.0-rc.0" }
 dioxus-devtools = { version = "=0.7.0-rc.0" }
 taffy = { version = "0.9", default-features = false, features = ["std", "flexbox", "grid", "block_layout", "content_size", "calc"] }
 
+# AnyRender
+anyrender = { git = "https://github.com/dioxuslabs/anyrender", rev = "94830dea" }
+anyrender_vello = { git = "https://github.com/dioxuslabs/anyrender", rev = "94830dea" }
+anyrender_vello_cpu = { git = "https://github.com/dioxuslabs/anyrender", rev = "94830dea" }
+anyrender_svg = { git = "https://github.com/dioxuslabs/anyrender", rev = "94830dea" }
+wgpu_context = { git = "https://github.com/dioxuslabs/anyrender", rev = "94830dea" }
+
 # Linebender + Fontations + WGPU + SVG
 color = "0.3"
 linebender_resource_handle = "0.1"
 peniko = "0.5.0"
 kurbo = "0.12"
-parley = { git = "https://github.com/rydb/parley", rev = "e8a7111", default-features = false, features = ["std"] }
-skrifa = { version = "0.37" } # Should match parley version
+parley = { git = "https://github.com/linebender/parley", rev = "dcfa3a1", default-features = false, features = ["std"] }
+skrifa = { version = "0.37", default-features = false, features = ["std"] } # Should match parley version
 wgpu = "26"
 softbuffer = "0.4"
 pixels = "0.15"
@@ -115,7 +111,7 @@ tokio = "1.42"
 reqwest = "0.12"
 
 # Media & Decoding
-image = { version = "0.25", default-features = false }
+image = { version = "=0.25.6", default-features = false }
 woff = { version = "0.6", default-features = false }
 woff2 = "0.3"
 wuff = "0.2"

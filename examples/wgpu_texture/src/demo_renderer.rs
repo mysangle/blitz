@@ -1,11 +1,10 @@
 // Copyright © SixtyFPS GmbH <info@slint.dev>
 // SPDX-License-Identifier: MIT
 use crate::Color;
-use anyrender_vello::wgpu_context::DeviceHandle;
 use anyrender_vello::{CustomPaintCtx, CustomPaintSource, TextureHandle};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::time::Instant;
-use wgpu::Instance;
+use wgpu_context::DeviceHandle;
 
 pub struct DemoPaintSource {
     state: DemoRendererState,
@@ -16,7 +15,7 @@ pub struct DemoPaintSource {
 }
 
 impl CustomPaintSource for DemoPaintSource {
-    fn resume(&mut self, _instance: &Instance, device_handle: &DeviceHandle) {
+    fn resume(&mut self, device_handle: &DeviceHandle) {
         // TODO: work out what to do about width/height
         let active_state = ActiveDemoRenderer::new(device_handle);
         self.state = DemoRendererState::Active(Box::new(active_state));
